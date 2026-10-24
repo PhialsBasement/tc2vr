@@ -28,13 +28,13 @@ files are left untouched.
 
 ## Install
 
-1. Copy `dinput8.dll` next to `TheCrew2.exe`.
+1. Copy `dinput8.dll` and `openxr_loader.dll` next to `TheCrew2.exe`.
 2. **Proton only:** set the Steam launch options to
    `WINEDLLOVERRIDES="dinput8=n,b" %command%` so Wine loads the mod instead of
    its own `dinput8`.
 3. Start the game with the headset connected and the OpenXR runtime running.
 
-To remove the mod, delete `dinput8.dll`.
+To remove the mod, delete `dinput8.dll` and `openxr_loader.dll`.
 
 ## Using it
 
@@ -121,8 +121,10 @@ cmake --build build
 ```
 
 The output is `build/dinput8.dll`. OpenXR headers are vendored in
-`third_party/openxr`; no OpenXR loader is needed, the mod loads the active
-runtime directly from the registry.
+`third_party/openxr`. Releases ship the official Khronos
+`openxr_loader.dll` (Windows x64, from the OpenXR-SDK-Source releases),
+which the mod loads from the game folder. Without it, the mod falls back
+to loading the runtime named in the registry directly.
 
 ## Source layout
 

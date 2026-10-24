@@ -145,10 +145,31 @@ std::wstring RuntimeLibraryPath(const std::wstring& manifest) {
     return lib;
 }
 
+// The official Khronos loader shipped next to the game exe. It
+// finds the runtime itself and enables any installed API layers.
+bool LoadOfficialLoader() {
+    wchar_t path[MAX_PATH];
+    DWORD len = GetModuleFileNameW(nullptr, path, MAX_PATH);
+    std::wstring dir(path, len);
+    dir = dir.substr(0, dir.find_last_of(L"\\/") + 1);
+    HMODULE module = LoadLibraryW((dir + L"openxr_loader.dll").c_str());
+    if (!module) {
+        return false;
+    }
+    g_getProc = reinterpret_cast<PFN_xrGetInstanceProcAddr>(
+        GetProcAddress(module, "xrGetInstanceProcAddr"));
+    LOG("xr: using openxr_loader.dll%s",
+        g_getProc ? "" : " (no xrGetInstanceProcAddr export)");
+    return g_getProc != nullptr;
+}
+
 bool LoadRuntime() {
+    if (LoadOfficialLoader()) {
+        return true;
+    }
     std::wstring manifest = ReadActiveRuntimeManifest();
     if (manifest.empty()) {
-        LOG("xr: no active OpenXR runtime registered");
+        LOG("xr: no openxr_loader.dll and no active runtime registered");
         return false;
     }
     std::wstring lib = RuntimeLibraryPath(manifest);
